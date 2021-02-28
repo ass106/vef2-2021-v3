@@ -92,7 +92,7 @@ export const sign = async (signature) => {
 
 export async function deleteRow(id) {
   const q = 'DELETE FROM signatures WHERE id = $1';
-  console.log(id);
+  
   return query(q, [ id ]);
 }
 // TODO rest af föllum
