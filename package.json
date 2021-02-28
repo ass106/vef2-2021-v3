@@ -12,7 +12,8 @@
     "test:stylelint": "stylelint ./public/styles.css",
     "test": "eslint ./src",
     "start": "node ./src/app.js",
-    "setup": "node ./src/setup.js"
+    "setup": "node ./src/setup.js",
+    "review": "npm run setup & npm run test & npm run start"
   },
   "keywords": [],
   "author": "ass106",

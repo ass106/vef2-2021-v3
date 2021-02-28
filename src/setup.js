@@ -30,6 +30,8 @@ async function main() {
   }
 
   formatQuery('INSERT INTO signatures(name, nationalid, comment, anonymous, signed) VALUES %L returning *;', signees);
+
+  console.info(`Sett inn í töflu ${signees.length} feik prófílar.`);
 }
 
 main().catch((err) => {

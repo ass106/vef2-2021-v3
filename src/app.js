@@ -1,10 +1,8 @@
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-
 import express from 'express';
 import session from 'express-session';
 import dotenv from 'dotenv';
-
 import passport from 'passport';
 import { Strategy } from 'passport-local';
 import { userStrategy, serializeUser, deserializeUser } from './users.js';
@@ -45,7 +43,6 @@ app.use(passport.session());
 const path = dirname(fileURLToPath(import.meta.url));
 
 app.use(express.static(join(path, '../public')));
-
 
 app.set('views', join(path, '../views'));
 app.set('view engine', 'ejs');
