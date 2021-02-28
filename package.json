@@ -29,6 +29,7 @@
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "pg": "^8.5.1",
+    "pg-format": "^1.0.4",
     "xss": "^1.0.8"
   },
   "devDependencies": {
