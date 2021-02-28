@@ -77,7 +77,7 @@ async function validationCheck(req, res, next) {
   const page = +req.query.page || 1;
 
   const signatures = await getSignatures((page - 1) * ITEMS_PER_PAGE);
-  
+
   const formData = {
     name, ssn, comment, anonymous,
   };
