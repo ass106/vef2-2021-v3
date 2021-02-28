@@ -1,5 +1,11 @@
 # Vefforritun 2, 2021, verkefni 3
 
+Til þess að setja upp gagnagrunn: `npm run setup`.
+Til þess að keyra forrit `npm run start`.
+
+Fyrir kennara í yfirferð er hægt að keyra: `npm run review` en það keyrir `npm run setup & npm run test & npm run start`.
+Verkefni er ekki stylelintað einfaldlega vegna þess að við útfærsluna er eingöngu notast við bootstrap.
+
 Framhald af [verkefni 2](https://github.com/vefforritun/vef2-2021-v2).
 
 [Vídeó yfirferð](https://youtu.be/GW-mbrG5dEs).
