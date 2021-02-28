@@ -1,33 +1,37 @@
-<form method="post" action="/" enctype="application/x-www-form-urlencoded" class="form form--separated">
-      <div class="row justify-content-center">
-        <label class="col col-2 justify-content-end" for="name">Nafn*</label>
-        <input class="col col-3 <%= regInfo.name_invalid ? 'invalid':'valid' %>" type="text" name="name"
-          value="<%= regInfo.name %>" required><br>
-      </div>
-      <div class="row justify-content-center">
-        <label class="col col-2" for="ssn">Kennitala*</label>
-        <input class="col col-3 <%= regInfo.ssn_invalid ? 'invalid':'valid'%>" type="text" name="ssn" placeholder="000000-0000"
-          value="<%= regInfo.ssn %>" required><br>
-      </div>
-      <div class="row justify-content-center">
-        <label class="col col-2" for="comment">Athugasemd:</label>
-        <textarea class="col col-3" name="comment">
-      </textarea>
-      </div>
-      <div class="container row text-center">
-        <label class="" for="anon">
-        <input class="" type="checkbox" value="true" name="anon" />
-        Ekki birta nafn á lista</label>
-      </div>
-      <div class="container text-center">
-        <button>Skrifa undir</button>
-      </div>
-    <% if(regInfo.errors.length !== 0) {%>
-      <div class="container text-danger text-center my-5">
-        <p class="row col"><strong>Villur við undirskrift</strong></p>
-          <% for(let i = 0; i < regInfo.errors.length; i++) { %>
-            <p><%= regInfo.errors[i].msg + "."%></p>
-          <% } %>
-      </div>
+<div class="container d-flex justify-content-center">
+  <form method="post" action="/" enctype="application/x-www-form-urlencoded" class="form form--separated w-75 d-flex flex-column justify-content-center">
+    <div class="d-flex flex-row justify-content-center">
+      <label class="col-2 mr-2 text-end" for="name">Nafn*</label>
+      <input class="w-50 <%= regInfo.name_invalid ? 'invalid':'valid' %>" type="text" name="name"
+        value="<%= regInfo.name %>" required><br>
+    </div>
+    <div class="d-flex flex-row justify-content-center">
+      <label class="col-2 mr-2 text-end" for="ssn">Kennitala*</label>
+      <input class="w-50 <%= regInfo.ssn_invalid ? 'invalid':'valid'%>" type="text" name="ssn" placeholder="000000-0000"
+        value="<%= regInfo.ssn %>" required><br>
+    </div>
+    <div class="d-flex flex-row justify-content-center">
+      <label class="col-2 mr-2 text-end" for="comment">Athugasemd:</label>
+      <textarea class="w-50" name="comment">
+    </textarea>
+    </div>
+    <div class="container text-center my-3">
+      <label class="" for="anon">
+      <input class="" type="checkbox" value="true" name="anonymous" />
+      Ekki birta nafn á lista</label>
+    </div>
+    <div class="container text-center">
+      <button>Skrifa undir</button>
+    </div>
+    <% if(errors.length !== 0) {%>
+    <div class="container text-danger text-start d-flex flex-column w-75 justify-content-center">
+      <p><strong>Villur við undirskrift</strong></p>
+        <ul class="list-group">
+        <% for(let i = 0; i < errors.length; i++) { %>
+          <li class="list-group-item list-group-item-danger"><p><%= errors[i].msg + "."%></p></li>
+        <% } %>
+        </ul>
+    </div>
     <% } %>
-</form>
+  </form>
+</div>

@@ -21,10 +21,10 @@ pool.on('error', (err) => {
 
 export async function query(_query, values) {
   const client = await pool.connect();
-  
+
   try {
     const result = await client.query(_query, values);
-    
+
     return result;
   } finally {
     client.release();
@@ -64,7 +64,6 @@ export async function getNumberOfSignatures() {
   try {
     const result = await client.query(qy);
     count = result.rows[0].count;
-    
   } catch (e) {
     console.error('Error getting count', e);
   } finally {
@@ -74,25 +73,35 @@ export async function getNumberOfSignatures() {
   return count;
 }
 
-export const sign = async (signature) => {
-  const client = await pool.connect();
-  const qy = 'INSERT INTO signatures(name, nationalid, comment, anonymous) values($1, $2, $3, $4) returning *;';
+export async function sign({
+  name, ssn, comment, anonymous,
+} = {}) {
+  let success = true;
+
+  const q = `
+    INSERT INTO signatures
+      (name, nationalId, comment, anonymous)
+    VALUES
+      ($1, $2, $3, $4);
+  `;
+  const values = [name, ssn, comment, anonymous === true];
+
   try {
-    await client.query(qy, signature);
+    await query(q, values);
   } catch (e) {
     if (e.code === '23505' && e.constraint === 'signatures_nationalid_key') {
-      return -1;
+      return false;
     }
-    console.error('Error selecting', e.code);
-  } finally {
-    client.release();
+    console.error('Error inserting signature', e);
+    success = false;
   }
-  return 0;
-};
+
+  return success;
+}
 
 export async function deleteRow(id) {
   const q = 'DELETE FROM signatures WHERE id = $1';
-  
-  return query(q, [ id ]);
+
+  return query(q, [id]);
 }
 // TODO rest af föllum

@@ -1,14 +1,18 @@
 <%- include('header') -%>
+<div class="container d-flex justify-content-center">
+<div class="card w-50 mt-5">
+  <div class="card-body">
+  <h1 class="card-title">Innskráning</h1>
 
-<h1>Innskráning</h1>
-
-<form method="post" action="/login" autocomplete="off">
-    <label>Notendanafn: <input type="text" name="username"></label>
-    <label>Lykilorð: <input type="password" name="password"></label>
-    <button>Innskrá</button>
-  </form>
-  <p><%= message %></p>
-
-<a href="/">Til baka</a>
+  <form class="card-text" method="post" action="/login" autocomplete="off">
+      <label>Notendanafn: <input type="text" name="username"></label>
+      <label>Lykilorð: <input type="password" name="password"></label>
+      <button>Innskrá</button>
+    </form>
+    <p class="text-danger"><%= message %></p>
+  <a href="/">Til baka</a>
+</div>
+</div>
+</div>
 
 <%- include('footer') -%>
