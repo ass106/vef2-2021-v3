@@ -19,11 +19,12 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
-export async function query(_query, values = []) {
+export async function query(_query, values) {
   const client = await pool.connect();
-
+  
   try {
     const result = await client.query(_query, values);
+    
     return result;
   } finally {
     client.release();
@@ -41,12 +42,12 @@ export async function formatQuery(_query, values = []) {
   }
 }
 
-export async function getSignatures() {
+export async function getSignatures(offset = 0, limit = 50) {
   const client = await pool.connect();
-  const qy = 'select * from signatures;';
+  const qy = 'SELECT id, name, nationalId, comment, anonymous, signed FROM signatures ORDER BY signed DESC OFFSET $1 LIMIT $2;';
   let rows = [];
   try {
-    const result = await client.query(qy);
+    const result = await client.query(qy, [offset, limit]);
     rows = result.rows;
   } catch (e) {
     console.error('Error selecting', e);
@@ -62,7 +63,8 @@ export async function getNumberOfSignatures() {
   let count = 0;
   try {
     const result = await client.query(qy);
-    count = result;
+    count = result.rows[0].count;
+    
   } catch (e) {
     console.error('Error getting count', e);
   } finally {
@@ -88,20 +90,9 @@ export const sign = async (signature) => {
   return 0;
 };
 
-export const deleteSignature = async (id) => {
-  const client = await pool.connect();
-  const qy = 'DELETE FROM signatures WHERE id = $1;';
-
-  try {
-    await client.query(qy, [id]);
-  } catch (e) {
-    if (e.code === '23505' && e.constraint === 'signatures_id_primary_key') {
-      return -1;
-    }
-    console.error('Error deleting', e.code);
-  } finally {
-    client.release();
-  }
-  return 0;
-};
+export async function deleteRow(id) {
+  const q = 'DELETE FROM signatures WHERE id = $1';
+  console.log(id);
+  return query(q, [ id ]);
+}
 // TODO rest af föllum

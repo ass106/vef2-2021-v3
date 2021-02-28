@@ -1,3 +1,13 @@
+export function getInfo() {
+  return {
+    name: '',
+    name_invalid: false,
+    ssn: '',
+    ssn_invalid: false,
+    errors: [],
+  };
+}
+
 /**
  * Higher-order fall sem umlykur async middleware með villumeðhöndlun.
  *
@@ -47,4 +57,19 @@ export function getRandomSSN() {
   }
 
   return allEight;
+}
+
+/**
+ * Passar upp á að það sé innskráður notandi í request. Skilar næsta middleware
+ * ef svo er, annars redirect á /login
+ *
+ * @param {object} req Request hlutur
+ * @param {object} res Response hlutur
+ * @param {function} next Næsta middleware
+ */
+export function ensureLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  return res.redirect('/login');
 }

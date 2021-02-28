@@ -5,67 +5,68 @@ import express from 'express';
 import session from 'express-session';
 import dotenv from 'dotenv';
 
-import passport from './login.js';
+import passport from 'passport';
+import { Strategy } from 'passport-local';
+import { userStrategy, serializeUser, deserializeUser } from './users.js';
 import { router as registrationRouter } from './registration.js';
 import { router as adminRoute } from './admin.js';
 
 dotenv.config();
-
+const sessionSecret = 'leyndarmal';
 const {
   PORT: port = 3000,
-  // SESSION_SECRET: sessionSecret,
   DATABASE_URL: connectionString,
 } = process.env;
 
-if (!connectionString) { // || !sessionSecret) {
+if (!connectionString || !sessionSecret) {
   console.error('Vantar gögn í env');
   process.exit(1);
 }
 
 const app = express();
 
-const path = dirname(fileURLToPath(import.meta.url));
-
-// Það sem verður notað til að dulkóða session gögnin
-const sessionSecret = 'leyndarmál';
-
-app.use(express.static(join(path, './public')));
-app.use(express.urlencoded({ extended: true }));
-
-// Erum að vinna með form, verðurm að nota body parser til að fá aðgang
-// að req.body
-app.use(express.urlencoded({ extended: true }));
-
-// Passport mun verða notað með session
 app.use(session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  maxAge: 20 * 1000, // 20 sek
+  maxAge: 30 * 24 * 60 * 1000, // 30 dagar
 }));
 
-app.set('views', './views');
-app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
 
-app.use(registrationRouter);
-app.use(adminRoute);
+passport.use(new Strategy(userStrategy));
 
-function errorHandler(err, req, res, next) { // eslint-disable-line
-  console.error(err); // eslint-disable-line
-  res.send('error');
-}
+passport.serializeUser(serializeUser);
+passport.deserializeUser(deserializeUser);
 
-// Látum express nota passport með session
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Gott að skilgreina eitthvað svona til að gera user hlut aðgengilegan í
-// viewum ef við erum að nota þannig
+const path = dirname(fileURLToPath(import.meta.url));
+
+app.use(express.static(join(path, '../public')));
+
+app.set('views', join(path, '../views'));
+app.set('view engine', 'ejs');
+
+/**
+ * Hjálparfall til að athuga hvort reitur sé gildur eða ekki.
+ *
+ * @param {string} field Middleware sem grípa á villur fyrir
+ * @param {array} errors Fylki af villum frá express-validator pakkanum
+ * @returns {boolean} `true` ef `field` er í `errors`, `false` annars
+ */
+function isInvalid(field, errors = []) {
+  // Boolean skilar `true` ef gildi er truthy (eitthvað fannst)
+  // eða `false` ef gildi er falsy (ekkert fannst: null)
+  return Boolean(errors.find((i) => i && i.param === field));
+}
+
+app.locals.isInvalid = isInvalid;
+
 app.use((req, res, next) => {
-  if (req.isAuthenticated()) {
-    // getum núna notað user í viewum
-    res.locals.user = req.user;
-  }
+  // Látum `users` alltaf vera til fyrir view
+  res.locals.user = req.isAuthenticated() ? req.user : null;
 
   next();
 });
@@ -76,43 +77,68 @@ app.get('/login', (req, res) => {
   }
 
   let message = '';
-  const title = 'Skráðu þig inn';
 
-  // Athugum hvort einhver skilaboð séu til í session, ef svo er birtum þau
-  // og hreinsum skilaboð
   if (req.session.messages && req.session.messages.length > 0) {
     message = req.session.messages.join(', ');
     req.session.messages = [];
   }
 
-  // Ef við breytum name á öðrum hvorum reitnum að neðan mun ekkert virka
-  // nema við höfum stillt í samræmi, sjá línu 64
-  return res.render('login', { message, title });
+  return res.render('login', { page: 'login', title: 'Innskráning', message });
 });
 
 app.post(
   '/login',
 
-  // Þetta notar strat að ofan til að skrá notanda inn
   passport.authenticate('local', {
-    failureMessage: 'Notandanafn eða lykilorð vitlaust.',
+    failureMessage: 'Notandi eða lykilorð vitlaust.',
     failureRedirect: '/login',
   }),
 
-  // Ef við komumst hingað var notandi skráður inn, senda á /admin
   (req, res) => {
     res.redirect('/admin');
   },
 );
 
 app.get('/logout', (req, res) => {
-  // logout hendir session cookie og session
   req.logout();
   res.redirect('/');
 });
 
+app.use('/admin', adminRoute);
+app.use('/', registrationRouter);
+
+/**
+ * Middleware sem sér um 404 villur.
+ *
+ * @param {object} req Request hlutur
+ * @param {object} res Response hlutur
+ * @param {function} next Næsta middleware
+ */
+// eslint-disable-next-line no-unused-vars
+function notFoundHandler(req, res, next) {
+  const title = 'Síða fannst ekki';
+  res.status(404).render('error', { title });
+}
+
+/**
+ * Middleware sem sér um villumeðhöndlun.
+ *
+ * @param {object} err Villa sem kom upp
+ * @param {object} req Request hlutur
+ * @param {object} res Response hlutur
+ * @param {function} next Næsta middleware
+ */
+// eslint-disable-next-line no-unused-vars
+function errorHandler(err, req, res, next) {
+  console.error(err);
+  const title = 'Villa kom upp';
+  res.status(500).render('error', { title });
+}
+
+app.use(notFoundHandler);
 app.use(errorHandler);
 
+// Verðum að setja bara *port* svo virki á heroku
 app.listen(port, () => {
-  console.info(`App running on http://localhost:${port}`); // eslint-disable-line
+  console.info(`Server running at http://localhost:${port}/`);
 });

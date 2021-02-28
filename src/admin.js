@@ -1,49 +1,36 @@
 import express from 'express';
-import { getSignatures, getNumberOfSignatures, deleteSignature } from './db.js';
 
 // TODO útfæra „bakvinnslu“
+import { ensureLoggedIn, catchErrors } from './utils.js';
+import { query, getSignatures } from './db.js';
 
 export const router = express.Router();
 
-function getInfo() {
-  return {
-    name: '',
-    name_invalid: false,
-    ssn: '',
-    ssn_invalid: false,
-    errors: [],
-  };
+/**
+ * Route fyrir lista af notendum.
+ *
+ * @param {object} req Request hlutur
+ * @param {object} res Response hlutur
+ */
+async function userRoute(req, res) {
+  const result = await query('SELECT COUNT(*) AS count FROM signatures;');
+  const numberOfItems = Number(result.rows[0].count);
+  const ITEMS_PER_PAGE = 50;
+  const page = +req.query.page || 1;
+
+  const signatures = await getSignatures((page - 1) * ITEMS_PER_PAGE);
+
+  return res.render('admin', {
+    signatures,
+    numberOfItems,
+    currentPage: page,
+    hasNextPage: (ITEMS_PER_PAGE * page) < numberOfItems,
+    hasPreviousPage: page > 1,
+    nextPage: page + 1,
+    previousPage: page - 1,
+    lastPage: Math.ceil(numberOfItems / ITEMS_PER_PAGE),
+    title: 'Stjórnun',
+  });
 }
 
-router.get('/admin', async (req, res, next) => { // eslint-disable-line
-  const title = 'Þú ert admin';
-  const regInfo = getInfo();
-  const signatures = await getSignatures();
-  const totalItems = await getNumberOfSignatures();
-  const itemsPerPage = 50;
-  const pageNum = 0;
-  const admin = true;
-
-  res.render('admin', {
-    title, regInfo, signatures, totalItems, itemsPerPage, pageNum, admin,
-  });
-});
-
-router.post('/delete', async (req, res, next) => { // eslint-disable-line
-  const regInfo = getInfo();
-  let signatures = await getSignatures();
-  const title = 'Undirskriftarlisti';
-  const admin = true;
-
-  const result = await deleteSignature(req.query.id);
-  if (result !== 0) {
-    res.redirect('/error');
-    return;
-  }
-
-  signatures = await getSignatures();
-  res.redirect('/admin');
-  res.render('index', {
-    title, regInfo, signatures, admin,
-  });
-});
+router.get('/', ensureLoggedIn, catchErrors(userRoute));
